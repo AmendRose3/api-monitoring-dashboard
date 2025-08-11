@@ -1,0 +1,16 @@
+version: '3.3'
+
+services:
+  cassandra:
+    image: cassandra:4
+    container_name: cassandra
+    ports:
+      - "9042:9042"
+    volumes:
+      - cassandra_data:/var/lib/cassandra
+    environment:
+      - JVM_OPTS=-Xms512m -Xmx512m
+    restart: always
+
+volumes:
+  cassandra_data:
