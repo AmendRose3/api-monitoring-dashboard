@@ -20,7 +20,7 @@ const APIMonitorDashboard = () => {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-
+      const apiConstants = JSON.parse(localStorage.getItem('apiConstants') || "{}");
       const token = localStorage.getItem('token');
       const projectKey = localStorage.getItem('projectKey');
       const role = localStorage.getItem('role');
@@ -30,13 +30,24 @@ const APIMonitorDashboard = () => {
         return;
       }
 
+      const headers = {
+        token,
+        key: projectKey,
+        role,
+        countryCode: apiConstants.COUNTRY_CODE || "",
+        tournamentKey: apiConstants.TOURNAMENT_KEY || "",
+        matchKey: apiConstants.MATCH_KEY || "",
+        playerKey: apiConstants.PLAYER_KEY || "",
+        inningKey: apiConstants.INNING_KEY || "",
+        overKey: apiConstants.OVER_KEY || "",
+        page: apiConstants.PAGE || "",
+        teamKey: apiConstants.TEAM_KEY || "",
+      };
+      console.log('Fetch headers:', headers);
+
       const response = await fetch(`http://127.0.0.1:5000/monitor`, {
         method: 'GET',
-        headers: {
-          token,
-          key: projectKey,
-          role,
-        },
+        headers,
       });
 
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -59,22 +70,27 @@ const APIMonitorDashboard = () => {
     // Load saved constants
     const apiConstants = JSON.parse(localStorage.getItem('apiConstants') || "{}");
 
+    const headers = {
+      token,
+      key: projectKey,
+      role,
+      countryCode: apiConstants.COUNTRY_CODE || "",
+      tournamentKey: apiConstants.TOURNAMENT_KEY || "",
+      matchKey: apiConstants.MATCH_KEY || "",
+      playerKey: apiConstants.PLAYER_KEY || "",
+      inningKey: apiConstants.INNING_KEY || "",
+      overKey: apiConstants.OVER_KEY || "",
+      page: apiConstants.PAGE || "",
+      teamKey: apiConstants.TEAM_KEY || "",
+    };
+    console.log('TestNow headers:', headers);
+
     const response = await fetch(`http://127.0.0.1:5000/monitor/test/${apiKey}`, {
       method: 'GET',
-      headers: {
-        token,
-        key: projectKey,
-        role,
-        country_code: apiConstants.COUNTRY_CODE,
-        tournament_key: apiConstants.TOURNAMENT_KEY,
-        match_key: apiConstants.MATCH_KEY,
-        player_key: apiConstants.PLAYER_KEY,
-        inning_key: apiConstants.INNING_KEY,
-        over_key: apiConstants.OVER_KEY,
-        page: apiConstants.PAGE,
-        team_key: apiConstants.TEAM_KEY,
-      },
+      headers,
     });
+
+    
 
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const updatedApi = await response.json();
@@ -105,19 +121,19 @@ const APIMonitorDashboard = () => {
       }
       // Status filter: assuming api.status is a string like 'online'/'offline' or boolean or number code
       // Adjust condition based on your actual 'status' field format
-      if (statusFilter === 'Online' && !(api.status === 'online' || api.status === 'healthy' || api.status_code === 200)) {
-        return false;
-      }
-      if (statusFilter === 'Offline' && (api.status === 'online' || api.status === 'healthy' || api.status_code === 200)) {
-        return false;
-      }
+     if (statusFilter === 'Online' && api.status_code !== 200) {
+      return false;
+    }
+    if (statusFilter === 'Failed' && api.status_code === 200) {
+      return false;
+    }
       return true;
     });
   }, [data, categoryFilter, statusFilter]);
 
   useEffect(() => {
     fetchData();
-    const interval = setInterval(fetchData, 300000);
+    const interval = setInterval(fetchData, 1800000); // 30 minutes = 1,800,000 ms
     return () => clearInterval(interval);
   }, [fetchData]);
 
@@ -134,7 +150,7 @@ const APIMonitorDashboard = () => {
           <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
             {categories.map((cat) => (
               <option key={cat} value={cat}>
-                {cat}
+                {cat.charAt(0).toUpperCase() + cat.slice(1)}
               </option>
             ))}
           </select>
@@ -145,7 +161,7 @@ const APIMonitorDashboard = () => {
           <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
             <option value="All">All</option>
             <option value="Online">Online</option>
-            <option value="Offline">Offline</option>
+            <option value="Failed">Failed</option>
           </select>
         </label>
       </div>

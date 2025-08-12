@@ -6,7 +6,7 @@ import SetKeysModal from './SetKeysModal';
 const Header = ({ onRefresh }) => {
   const navigate = useNavigate();
   const role = localStorage.getItem('role');
-  const [showSetKeys, setShowSetKeys] = useState(false);
+  const [showSetKeys, setShowSetKeys] = useState(fxalse);
 
   const handleLogout = () => {
     localStorage.clear();
@@ -35,12 +35,12 @@ const Header = ({ onRefresh }) => {
           <span>Set Keys</span>
         </button>
 
-        {role === 'admin' && (
+        {/* {role === 'admin' && (
           <button className="add-api-button">
             <Plus size={16} />
             <span>Add API</span>
           </button>
-        )}
+        )} */}
 
         <button className="add-api-button" onClick={handleLogout}>
           <LogOut size={16} />

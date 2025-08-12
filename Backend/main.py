@@ -11,11 +11,23 @@ from apscheduler.triggers.interval import IntervalTrigger
 import atexit
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, supports_credentials=True, allow_headers=[
+    "Content-Type",
+    "Authorization",
+    "token",
+    "key",
+    "role",
+    "countryCode",
+    "tournamentKey",
+    "matchKey",
+    "playerKey",
+    "inningKey",
+    "overKey",
+    "page",
+    "teamKey"
+])
 
 session = get_cassandra_session()
-
-
 
 
 @app.route('/api/login', methods=['POST'])
@@ -54,6 +66,8 @@ def hit_single_api(api_key):
     auth_header = request.headers.get('token')
     project_key = request.headers.get('key')
     role = request.headers.get('role')
+    api_constants = get_api_constants_from_headers(request)
+
 
     if not auth_header or not project_key or not role:
         return jsonify({'error': 'Missing auth headers'}), 400
@@ -61,7 +75,7 @@ def hit_single_api(api_key):
     token = auth_header
 
     try:
-        result = test_single_api(session, project_key,api_key, auth_header)
+        result = test_single_api(session, project_key,api_key, auth_header,api_constants)
         return jsonify(result)
     except Exception as e:
         return jsonify({'error': f'Error testing API: {str(e)}'}), 500
@@ -74,14 +88,33 @@ def monitor():
     auth_header = request.headers.get('token')
     project_key = request.headers.get('key')
     role = request.headers.get('role')
-    
+    api_constants = get_api_constants_from_headers(request)
+    print(f"API Constants: {api_constants}")
+
 
     
     if not auth_header or not project_key or not role:
         return jsonify({'error': 'Missing auth headers bro'}), 400
     token = auth_header
-    result = monitor_apis(session, project_key, token)
+    result = monitor_apis(session, project_key, token,api_constants)
     return jsonify(result)
+
+
+
+def get_api_constants_from_headers(req):
+    """Extract optional API constants from request headers."""
+    print(f"Request Headers: {req.headers}")
+    possible_keys = [
+        "countryCode",
+        "tournamentKey",
+        "matchKey",
+        "playerKey",
+        "inningKey",
+        "overKey",
+        "page",
+        "teamKey",
+    ]
+    return {k: req.headers.get(k) for k in possible_keys if req.headers.get(k) is not None}
 
 if __name__ == '__main__':
     app.run(debug=True)

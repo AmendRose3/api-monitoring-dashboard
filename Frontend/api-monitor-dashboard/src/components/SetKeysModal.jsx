@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import '../styles/APIMonitorDashboard.css';
 
 const DEFAULT_VALUES = {
-  BASE_URL: "https://api.sports.roanuz.com/v5/cricket/{proj_key}/",
   COUNTRY_CODE: "IND",
   TOURNAMENT_KEY: "a-rz--cricket--icc--icccwclt--2023-27-8JlY",
   MATCH_KEY: "a-rz--cricket--Th1834366022682058833",
@@ -15,6 +14,7 @@ const DEFAULT_VALUES = {
 };
 
 const SetKeysModal = ({ isOpen, onClose, onSave }) => {
+
   const [formData, setFormData] = useState(DEFAULT_VALUES);
   const [errors, setErrors] = useState({});
 
@@ -24,6 +24,15 @@ const SetKeysModal = ({ isOpen, onClose, onSave }) => {
       setFormData(JSON.parse(saved));
     }
   }, [isOpen]); 
+
+
+  const handleReset = () => {
+  setFormData(DEFAULT_VALUES);
+  setErrors({});
+  localStorage.setItem("apiConstants", JSON.stringify(DEFAULT_VALUES));
+  if (onSave) onSave(DEFAULT_VALUES);
+};
+
 
   const handleChange = (key, value) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
@@ -37,6 +46,8 @@ const SetKeysModal = ({ isOpen, onClose, onSave }) => {
         newErrors[key] = true;
       }
     });
+
+    
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -53,7 +64,7 @@ const SetKeysModal = ({ isOpen, onClose, onSave }) => {
   return (
     <div className="modal-backdrop">
       <div className="modal-container">
-        <h2>Set API Constants</h2>
+        <h2>Set API Keys</h2>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -79,10 +90,19 @@ const SetKeysModal = ({ isOpen, onClose, onSave }) => {
             <button
               type="button"
               className="cancel-btn"
+              style={{ marginLeft: "8px", background: "#393e4b", color: "#fff" }}
+              onClick={handleReset}
+            >
+              Reset
+            </button>
+            <button
+              type="button"
+              className="cancel-btn"
               onClick={onClose}
             >
               Cancel
             </button>
+            
           </div>
         </form>
       </div>

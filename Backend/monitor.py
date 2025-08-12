@@ -2,38 +2,47 @@ import requests
 from cassandra.query import SimpleStatement
 from datetime import datetime
 
-BASE_URL = "https://api.sports.roanuz.com/v5/cricket/{proj_key}/"
-PROJECT_KEY = "RS_P_1912493998375911425"
+from dotenv import load_dotenv
+import os
 
-COUNTRY_CODE = "IND"
-TOURNAMENT_KEY = "a-rz--cricket--icc--icccwclt--2023-27-8JlY"
-MATCH_KEY = "a-rz--cricket--Th1834366022682058833"
-PLAYER_KEY = "c__player__jan_nicol_loftieeaton__34004"
-INNING_KEY = "a_1"
-OVER_KEY = "a_1_36"
-PAGE = 1
-TEAM_KEY = "nep"
+load_dotenv()
 
-PLACEHOLDERS = {
-    "{{proj_key}}": PROJECT_KEY,
-    "{{project_key}}": PROJECT_KEY,
-    "{{match_key}}": MATCH_KEY,
-    "{{tournament_key}}": TOURNAMENT_KEY,
-    "{{inning_key}}": INNING_KEY,
-    "{{over_key}}": OVER_KEY,
-    "{{player_key}}": PLAYER_KEY,
-    "{{page}}": PAGE,
-    "{{team_key}}": TEAM_KEY,
-    "{{country_code}}": COUNTRY_CODE
-}
+BASE_URL = os.getenv("BASE_URL")
 
-def replace_placeholders(url_template: str) -> str:
-    """Replace placeholders in API URL with actual values."""
-    for ph, val in PLACEHOLDERS.items():
+
+def replace_placeholders(url_template: str, api_constants: dict) -> str:
+    """Replace placeholders in API URL with actual values from api_constants."""
+    mapping = {
+        "{{match_key}}": api_constants.get("matchKey", ""),
+        "{{tournament_key}}": api_constants.get("tournamentKey", ""),
+        "{{inning_key}}": api_constants.get("inningKey", ""),
+        "{{over_key}}": api_constants.get("overKey", ""),
+        "{{player_key}}": api_constants.get("playerKey", ""),
+        "{{page}}": api_constants.get("page", ""),
+        "{{team_key}}": api_constants.get("teamKey", ""),
+        "{{country_code}}": api_constants.get("countryCode", ""),
+    }
+    for ph, val in mapping.items():
         url_template = url_template.replace(ph, str(val))
     return url_template
 
-def test_single_api(session, project_key, api_key, auth_header):
+def get_status_from_code(status_code):
+    if status_code == 200:
+        return "Success"
+    elif status_code == 400:
+        return "Invalid Input"
+    elif status_code == 402:
+        return "Inactive Project"
+    elif status_code == 403:
+        return "Access Limited"
+    elif status_code == 404:
+        return "Resource Not Found"
+    elif status_code == 500:
+        return "Unknown Error"
+    else:
+        return f"HTTP {status_code}"
+
+def test_single_api(session, project_key, api_key, auth_header, api_constants):
     query = "SELECT * FROM api_endpoints WHERE api_key=%s"
     api_row = session.execute(query, [api_key]).one()
     if not api_row:
@@ -41,11 +50,14 @@ def test_single_api(session, project_key, api_key, auth_header):
 
     headers = {"rs-token": auth_header}
 
-    api_url = replace_placeholders(api_row['url'])
+    api_url = replace_placeholders(api_row['url'], api_constants)
+    print(f"API URL after replacement: {api_url}")
     url = BASE_URL.replace('{proj_key}', project_key) + api_url
+    print(f"Full URL: {url}")
 
     method = api_row['method']
     name = api_row['name']
+    description = api_row['description']
     sport = api_row['sport']
     category = api_row['category']
 
@@ -60,11 +72,11 @@ def test_single_api(session, project_key, api_key, auth_header):
         status_code = response.status_code
         response_time = int(response.elapsed.total_seconds() * 1000)
         response_json = response.text
-        if status_code == 200:
-            status = "online" if response_time <= 1000 else "slow"
+        status = get_status_from_code(status_code)
     except Exception as e:
         status_code = 500
         error_message = str(e)
+        status = get_status_from_code(status_code)
 
     # Insert log
     insert_query = """
@@ -115,6 +127,7 @@ def test_single_api(session, project_key, api_key, auth_header):
         'name': name,
         'url': url,
         'status': status,
+        'description': description,
         'response_time_ms': response_time,
         'uptime': getUptime(session, project_key, api_key),
         'last_check': datetime.now().isoformat(),
@@ -125,7 +138,7 @@ def test_single_api(session, project_key, api_key, auth_header):
         'category': category
     }
 
-def monitor_apis(session, project_key, token):
+def monitor_apis(session, project_key, token,api_constants):
     print("Checking API Health Now...")
 
     api_endpoints = session.execute("SELECT * FROM api_endpoints")
@@ -136,11 +149,12 @@ def monitor_apis(session, project_key, token):
 
     for api in api_endpoints:
         total_apis += 1
-        api_url = replace_placeholders(api['url'])
+        api_url = replace_placeholders(api['url'], api_constants)
         url = BASE_URL.replace('{proj_key}', project_key) + api_url
 
         method = api['method']
         name = api['name']
+        description = api['description']
         sport = api['sport']
         category = api['category']
 
@@ -155,6 +169,7 @@ def monitor_apis(session, project_key, token):
             status_code = response.status_code
             response_time = int(response.elapsed.total_seconds() * 1000)
             response_json = response.text
+            status = get_status_from_code(status_code)
             if status_code == 200:
                 healthy_apis += 1
                 status = "online" if response_time <= 1000 else "slow"
@@ -163,6 +178,7 @@ def monitor_apis(session, project_key, token):
         except Exception as e:
             status_code = 500
             error_message = str(e)
+            status = get_status_from_code(status_code)
             failed_apis += 1
 
         # Log to Cassandra
@@ -212,6 +228,7 @@ def monitor_apis(session, project_key, token):
         data.append({
             'key': api['api_key'],
             'name': name,
+            'description': description,
             'url': url,
             'status': status,
             'response_time_ms': response_time,
