@@ -1,10 +1,11 @@
 import React from 'react';
-import { RefreshCw } from 'lucide-react';
+import Lottie from "lottie-react";
+import cricketAnimation from "../assets/cricket-loading.json";
 
 const LoadingSpinner = () => (
   <div className="loading-container">
     <div className="loading-content">
-      <RefreshCw className="loading-spinner" size={24} color="#2563eb" />
+      <Lottie animationData={cricketAnimation} loop={true} style={{ width: 80, height: 80 }} />
       <span className="loading-text">Loading dashboard...</span>
     </div>
   </div>

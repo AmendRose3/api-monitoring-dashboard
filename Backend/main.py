@@ -2,13 +2,9 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 from cassandra_db import get_cassandra_session
 from monitor import monitor_apis,test_single_api
+from api_endpoints_crud import get_all_endpoints, add_endpoint, update_endpoint, delete_endpoint
 import requests
-import logging
 from flask import request
-
-from apscheduler.schedulers.background import BackgroundScheduler
-from apscheduler.triggers.interval import IntervalTrigger
-import atexit
 
 app = Flask(__name__)
 CORS(app, supports_credentials=True, allow_headers=[
@@ -61,6 +57,9 @@ def login():
 
     return jsonify({'token': token}), 200
 
+
+# TEST SINGLE API
+
 @app.route('/monitor/test/<api_key>', methods=['GET'])
 def hit_single_api(api_key):
     auth_header = request.headers.get('token')
@@ -82,7 +81,7 @@ def hit_single_api(api_key):
 
 
 
-# GET DATA
+# GET DATA 
 @app.route('/monitor', methods=['GET'])
 def monitor():
     auth_header = request.headers.get('token')
@@ -100,6 +99,43 @@ def monitor():
     return jsonify(result)
 
 
+# CRUD OPERATIONS FOR API ENDPOINTS
+
+
+@app.route('/admin/api-endpoints', methods=['GET'])
+def list_endpoints():
+    print("Fetching all API endpoints")
+    role = request.headers.get('role')
+    if role != 'admin':
+        return jsonify({'error': 'Unauthorized'}), 403
+    return jsonify(get_all_endpoints(session)), 200
+
+@app.route('/admin/api-endpoints', methods=['POST'])
+def create_endpoint():
+    role = request.headers.get('role')
+    if role != 'admin':
+        return jsonify({'error': 'Unauthorized'}), 403
+    data = request.json
+    return jsonify(add_endpoint(session, **data)), 201
+
+@app.route('/admin/api-endpoints/<api_key>', methods=['PUT'])
+def edit_endpoint(api_key):
+    role = request.headers.get('role')
+    if role != 'admin':
+        return jsonify({'error': 'Unauthorized'}), 403
+    data = request.json
+    data.pop("api_key", None)
+    return jsonify(update_endpoint(session, api_key, **data)), 200
+
+@app.route('/admin/api-endpoints/<api_key>', methods=['DELETE'])
+def remove_endpoint(api_key):
+    role = request.headers.get('role')
+    if role != 'admin':
+        return jsonify({'error': 'Unauthorized'}), 403
+    return jsonify(delete_endpoint(session, api_key)), 200
+
+
+#Helper function to extract API constants from request headers
 
 def get_api_constants_from_headers(req):
     """Extract optional API constants from request headers."""

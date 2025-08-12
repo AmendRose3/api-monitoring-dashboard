@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { RefreshCw, Plus, LogOut, KeySquareIcon } from 'lucide-react';
+import { RefreshCw, Plus, LogOut, KeySquareIcon, Settings2Icon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import SetKeysModal from './SetKeysModal';
 
 const Header = ({ onRefresh }) => {
   const navigate = useNavigate();
   const role = localStorage.getItem('role');
-  const [showSetKeys, setShowSetKeys] = useState(fxalse);
+  const [showSetKeys, setShowSetKeys] = useState(false);
 
   const handleLogout = () => {
     localStorage.clear();
@@ -35,12 +35,12 @@ const Header = ({ onRefresh }) => {
           <span>Set Keys</span>
         </button>
 
-        {/* {role === 'admin' && (
-          <button className="add-api-button">
-            <Plus size={16} />
-            <span>Add API</span>
+        {role === 'admin' && (
+        <button className="add-api-button" onClick={() => navigate("/admin/manage-apis")}>
+            <Settings2Icon  size={16} />
+            <span>Manage</span>
           </button>
-        )} */}
+        )}
 
         <button className="add-api-button" onClick={handleLogout}>
           <LogOut size={16} />

@@ -60,21 +60,29 @@
 }
 
 .add-api-button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  background-color: #881a12;
+  background: linear-gradient(135deg, #7c2a09 0%, #af1010 100%);
   color: white;
   border: none;
+  padding: 0.75rem 1.5rem;
   border-radius: 8px;
-  font-weight: 500;
+  font-size: 0.875rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+  min-height: 48px;
 }
 
 .add-api-button:hover {
-  background-color: #000000;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px -5px rgb(182, 167, 167);
+}
+
+.add-api-button:active {
+  transform: translateY(0);
 }
 
 /* ===== GRID LAYOUTS ===== */
@@ -295,7 +303,7 @@
 /* ===== LOADING STATE ===== */
 .loading-container {
   min-height: 100vh;
-  background-color: #f9fafb;
+  background-color: #eff0f1;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -372,6 +380,52 @@
   cursor: pointer;
   font-size: 1.2rem;
 }
+
+
+/* ===== Message ======== */
+.message {
+  position: fixed;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2000;
+  
+  padding: 14px 22px;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 15px;
+  letter-spacing: 0.3px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+  animation: fadePop 0.35s ease forwards;
+  max-width: 450px;
+  text-align: center;
+}
+
+/* Success style */
+.message.success {
+  background: linear-gradient(135deg, #e8f5e9, #fffdfd);
+  color: #15580c;
+  border: 1px solid #c3e6cb;
+}
+
+/* Error style */
+.message.error {
+  background: linear-gradient(135deg, #fdecea, #fffcfc);
+  color: #7f1d1d;
+  border: 1px solid #f5c6cb;
+}
+
+/* Fade + pop animation */
+@keyframes fadePop {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -60%) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
 
 /* ===== FILTER ===== */
 
@@ -469,6 +523,29 @@
   border-color: #ffffff;
   background: #23262f;
 }
+
+/* Style for select boxes inside modal form */
+.form-group select {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #bcbfc7;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-group select:focus {
+  border-color: #000000;
+  box-shadow: 0 0 4px rgba(214, 214, 214, 0.4);
+}
+
+.input-error,
+.form-group select.input-error {
+  border-color: red;
+}
+
 
 .input-error {
   border: 2px solid #dc2626 !important;

@@ -160,7 +160,7 @@ const APIMonitorDashboard = () => {
           Status:{' '}
           <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
             <option value="All">All</option>
-            <option value="Online">Online</option>
+            <option value="Online">Healthy</option>
             <option value="Failed">Failed</option>
           </select>
         </label>
