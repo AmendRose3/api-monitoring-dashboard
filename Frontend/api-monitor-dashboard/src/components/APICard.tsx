@@ -1,12 +1,42 @@
-import React, { useState } from 'react';
+import React, { useState, type JSX } from 'react';
 import { CheckCircle2, AlertTriangle, XCircle, Lock, HelpCircle, PauseCircle,  List, X } from 'lucide-react';
-import MiniChart from './MiniChart';
+import MiniChart from './MiniChart.js';
+// @ts-ignore
 import ReactJson from 'react-json-view';
 
-const APICard = ({ api, onTestNow}) => {
-  const [showJson, setShowJson] = useState(false);
 
-  const getStatusIcon = (statusCode) => {
+
+interface APILog {
+  log_time: string;
+  response_time_ms: number;
+  status_code: number;
+}
+
+interface ApiData {
+  key: string;
+  name: string;
+  url: string;
+  status: string;
+  status_code: number;
+  response_time_ms: number;
+  uptime: string;
+  last_check: string | number | Date;
+  description?: string;
+  last_5_logs: APILog[];
+  category?: string;
+  json_response?: Record<string, unknown> | string;
+}
+
+
+interface APICardProps {
+  api: ApiData;
+  onTestNow: (key: string) => void;
+}
+
+
+const APICard: React.FC<APICardProps> = ({ api, onTestNow }) => {
+const [showJson, setShowJson] = useState<boolean>(false);
+  const getStatusIcon = (statusCode: number): JSX.Element => {
     if (statusCode === 200) return <CheckCircle2 color="#22c55e" size={18} />;
     if (statusCode === 400) return <AlertTriangle color="#eab308" size={18} />;
     if (statusCode === 402) return <PauseCircle color="#eab308" size={18} />;
@@ -18,7 +48,7 @@ const APICard = ({ api, onTestNow}) => {
     return <HelpCircle color="#b0b3c0" size={18} />;
   };
 
-  const getStatusColor = (statusCode) => {
+  const getStatusColor = (statusCode: number): string => {
   if (statusCode === 200) return 'success';      // green
   if (statusCode >= 400 && statusCode < 500) return 'warning'; // yellow
   if (statusCode >= 500) return 'error';         // red
@@ -26,10 +56,10 @@ const APICard = ({ api, onTestNow}) => {
 };
 
 
-  const formatLastCheck = (timestamp) => {
+  const formatLastCheck = (timestamp: string | number | Date): string => {
     const now = new Date();
     const checkTime = new Date(timestamp);
-    const diffMs = now - checkTime;
+    const diffMs = now.getTime() - checkTime.getTime();
     const diffMins = Math.floor(diffMs / 60000);
     const diffSecs = Math.floor((diffMs % 60000) / 1000);
     return diffMins > 0 ? `${diffMins} min ago` : `${diffSecs} sec ago`;
@@ -102,6 +132,7 @@ const APICard = ({ api, onTestNow}) => {
           </button>
         </div>
         {api.json_response && api.json_response !== "" ? (
+          // @ts-ignore
           <ReactJson
             src={
               typeof api.json_response === 'string'

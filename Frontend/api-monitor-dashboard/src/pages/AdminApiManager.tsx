@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import "../styles/AdminApiManager.css";
 import "../styles/APIMonitorDashboard.css";
-import Header from "../components/AdminHeader";
-import ManageApi from "../components/ManageApi";
-import ManageUser from "../components/ManageUser";
+import Header from "../components/AdminHeader.js";
+import ManageApi from "../components/ManageApi.js";
+import ManageUser from "../components/ManageUser.js";
 
 const AdminApiManager = () => {
   const [view, setView] = useState("api"); // 'api' or 'user'

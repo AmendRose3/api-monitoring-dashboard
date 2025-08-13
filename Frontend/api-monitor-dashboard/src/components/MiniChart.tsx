@@ -1,5 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { Bar } from 'react-chartjs-2';
+import type { Chart } from 'chart.js';
+
 import {
   Chart as ChartJS,
   BarElement,
@@ -7,18 +9,34 @@ import {
   LinearScale,
   Tooltip,
 } from 'chart.js';
+import type { TooltipModel, ChartType } from 'chart.js';
+
+
+interface MiniChartProps {
+  values: number[];
+}
+
+interface LogEntry {
+  log_time: string;
+  response_time_ms: number;
+  status_code: number;
+}
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip);
 
-const createExternalTooltip = (tooltipModel, chartRef, values) => {
+const createExternalTooltip = (
+  tooltipModel: TooltipModel<'bar'>,
+  chartRef: React.RefObject<any>,
+  values: any[]) => {
   let tooltipEl = document.getElementById('chartjs-tooltip');
 
-  const formatTime = (timeStr) => {
+  // const formatTime = (timeStr) => {
+const formatTime = (timeStr: string | undefined): string => {
   if (!timeStr) return '';
   const d = new Date(timeStr);
-  if (isNaN(d)) return timeStr; // fallback if invalid date
+  if (isNaN(d.getTime())) return timeStr;
 
-  const pad = (n) => (n < 10 ? '0' + n : n);
+  const pad = (n: number) => (n < 10 ? '0' + n : n);
 
   const year = d.getFullYear();
   const month = pad(d.getMonth() + 1);
@@ -29,6 +47,7 @@ const createExternalTooltip = (tooltipModel, chartRef, values) => {
 
   return `${year}-${month}-${date} ${hours}:${minutes}:${seconds}`;
 };
+
 
 
   if (!tooltipEl) {
@@ -47,24 +66,24 @@ const createExternalTooltip = (tooltipModel, chartRef, values) => {
 
   // Hide tooltip if opacity is 0
   if (tooltipModel.opacity === 0) {
-    tooltipEl.style.opacity = 0;
+    tooltipEl.style.opacity = '0';
     return;
   }
 
   const idx = tooltipModel.dataPoints?.[0]?.dataIndex;
-  const log = values[idx];
+  const log = idx !== undefined ? values[idx] : undefined;
   tooltipEl.innerHTML = log
     ? `Time: ${formatTime(log.log_time)}<br>${log.response_time_ms} ms`
     : '';
 
   const position = chartRef.current.canvas.getBoundingClientRect();
-  tooltipEl.style.opacity = 1;
+  tooltipEl.style.opacity = '1';
   tooltipEl.style.left = position.left + window.scrollX + tooltipModel.caretX + 'px';
   tooltipEl.style.top = position.top + window.scrollY + tooltipModel.caretY - 30 + 'px';
 };
 
-const MiniChart = ({ values }) => {
-  const chartRef = useRef();
+const MiniChart = ({ values }: { values: LogEntry[] }) => {
+  const chartRef = useRef<Chart<'bar'> | null>(null);
 
   const data = {
     labels: values.map((_, i) => i + 1),
@@ -86,7 +105,7 @@ const MiniChart = ({ values }) => {
       legend: { display: false },
       tooltip: {
         enabled: false, // disable built-in tooltip
-        external: (context) => {
+      external: (context: { chart: Chart<'bar'>; tooltip: TooltipModel<'bar'> }) => {
           createExternalTooltip(context.tooltip, chartRef, values);
         },
       },

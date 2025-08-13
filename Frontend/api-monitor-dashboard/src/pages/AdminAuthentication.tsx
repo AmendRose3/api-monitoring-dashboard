@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
-import SetKeysModal from '../components/SetKeysModal';
+import SetKeysModal from '../components/SetKeysModal.js';
 import '../styles/Authentication.css';
 
 const AdminAuthentication = () => {

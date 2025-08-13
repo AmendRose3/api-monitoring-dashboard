@@ -1,12 +1,34 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Plus, Edit, Trash2, X } from "lucide-react";
 
+
+interface ApiData {
+  api_key: string;
+  category: string;
+  description: string;
+  method: "GET" | "POST" | "PUT" | "DELETE";
+  name: string;
+  sport: string;
+  url: string;
+}
+
+interface FormData {
+  category: string;
+  description: string;
+  method: "GET" | "POST" | "PUT" | "DELETE";
+  name: string;
+  sport: string;
+  url: string;
+}
+
+type FormErrors = Partial<Record<keyof FormData, boolean>>;
+
 const ManageApi = () => {
-  const [apis, setApis] = useState([]);
+  const [apis, setApis] = useState<ApiData[]>([]);
   const [message, setMessage] = useState("");
   const [messageType, setMessageType] = useState(""); // "success" or "error"
   const [showModal, setShowModal] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     category: "",
     description: "",
     method: "GET",
@@ -14,16 +36,16 @@ const ManageApi = () => {
     sport: "cricket",
     url: ""
   });
-  const [errors, setErrors] = useState({});
-  const [editKey, setEditKey] = useState(null);
+  const [errors, setErrors] = useState<Record<string, boolean>>({});
+const [editKey, setEditKey] = useState<string | null>(null);
   const [isOtherCategory, setIsOtherCategory] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const apisPerPage = 10;
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [sportFilter, setSportFilter] = useState("All");
 
-  const token = localStorage.getItem("token");
-  const role = localStorage.getItem("role");
+  const token = localStorage.getItem("token") || "";
+  const role = localStorage.getItem("role") || "";
 
   useEffect(() => {
     refreshApis();
@@ -42,10 +64,10 @@ const ManageApi = () => {
   };
 
   const handleSubmit = () => {
-    let newErrors = {};
-    const requiredFields = ["category", "description", "method", "name", "sport", "url"];
+  let newErrors: FormErrors = {};
+    const requiredFields:(keyof FormData)[] = ["category", "description", "method", "name", "sport", "url"];
     requiredFields.forEach((field) => {
-      if (!formData[field] && formData[field] !== 0) {
+      if (!formData[field]) {
         newErrors[field] = true;
       }
     });
@@ -92,7 +114,7 @@ const ManageApi = () => {
       });
   };
 
-  const handleDelete = (apiKey) => {
+  const handleDelete = (apiKey:string) => {
     if (!window.confirm("Are you sure you want to delete this API?")) return;
 
     fetch(`http://127.0.0.1:5000/admin/api-endpoints/${apiKey}`, {
@@ -111,7 +133,7 @@ const ManageApi = () => {
       });
   };
 
-  const handleEdit = (api) => {
+  const handleEdit = (api: ApiData) => {
     setFormData(api);
     setEditKey(api.api_key);
     setIsOtherCategory(!categories.includes(api.category));
@@ -354,7 +376,7 @@ const ManageApi = () => {
                 <select
                   value={formData.method}
                   onChange={(e) => {
-                    setFormData({ ...formData, method: e.target.value });
+                    setFormData({ ...formData,   method: e.target.value as "GET" | "POST" | "PUT" | "DELETE" });
                     setErrors((prev) => ({ ...prev, method: false }));
                   }}
                   className={errors.method ? "input-error" : ""}

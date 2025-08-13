@@ -1,6 +1,16 @@
+// SummaryCard.tsx
 import React from 'react';
+import type { ReactNode } from 'react';
 
-const SummaryCard = ({ icon, title, value, colorClass }) => (
+
+interface SummaryCardProps {
+  icon: ReactNode;         
+  title: string;           
+  value: string | number;
+  colorClass?: string;    
+}
+
+const SummaryCard: React.FC<SummaryCardProps> = ({ icon, title, value, colorClass }) => (
   <div className="summary-card">
     <div className="summary-card-content">
       <div className={`summary-icon ${colorClass}`}>

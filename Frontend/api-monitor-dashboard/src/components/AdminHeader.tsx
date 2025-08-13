@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { RefreshCw, Plus, LogOut, KeySquareIcon, LayoutDashboard } from 'lucide-react';
+import { LogOut, LayoutDashboard } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
-const Header = ({ onRefresh }) => {
+const Header = () => {
   const navigate = useNavigate();
   const role = localStorage.getItem('role');
   const name = localStorage.getItem('name');

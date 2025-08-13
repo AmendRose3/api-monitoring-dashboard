@@ -1,20 +1,53 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback,useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Header from '../components/Header';
-import SummaryGrid from '../components/SummaryGrid';
-import APICard from '../components/APICard';
-import LoadingSpinner from '../components/LoadingSpinner';
-import Footer from '../components/Footer';
+import Header from '../components/Header.js';
+import SummaryGrid from '../components/SummaryGrid.js';
+import APICard from '../components/APICard.js';
+import LoadingSpinner from '../components/LoadingSpinner.js';
+import Footer from '../components/Footer.js';
 import '../styles/APIMonitorDashboard.css';
 
-const APIMonitorDashboard = () => {
-  const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [lastUpdated, setLastUpdated] = useState(new Date());
+interface APILog {
+  log_time: string;
+  response_time_ms: number;
+  status_code: number;
+}
+interface APIDetail {
+  key: string;
+  name: string;
+  url: string;
+  status: string;
+  status_code: number;
+  response_time_ms: number;
+  uptime: string;
+  last_check: string | Date;
+  description?: string;
+  last_5_logs: APILog[];
+  category?: string;
+  json_response?: Record<string, unknown> | string;
+}
+
+
+interface APIMonitorData {
+  summary: {
+    total_apis: number;
+    healthy_apis: number;
+    failed_apis: number;
+    avg_response_time_ms: number;
+    [key: string]: any;
+  };
+  details: APIDetail[];
+}
+
+
+const UserDashboard = () => {
+  const [data, setData] = useState<APIMonitorData | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
   
   // Filters state
-  const [categoryFilter, setCategoryFilter] = useState('All');
-  const [statusFilter, setStatusFilter] = useState('All'); // Online, Offline, All
+  const [categoryFilter, setCategoryFilter] = useState<string>('All');
+  const [statusFilter, setStatusFilter] = useState<string>('All');
 
   const navigate = useNavigate();
 
@@ -22,9 +55,9 @@ const APIMonitorDashboard = () => {
     try {
       setLoading(true);
 
-      const token = localStorage.getItem('token');
-      const projectKey = localStorage.getItem('projectKey');
-      const role = localStorage.getItem('role');
+      const token = localStorage.getItem('token') || '';
+      const projectKey = localStorage.getItem('projectKey') || '';
+      const role = localStorage.getItem('role') || '';
 
         if (!token || !projectKey || !role || role !== 'user') {
           navigate('/?msg=Please login first');
@@ -86,11 +119,11 @@ const APIMonitorDashboard = () => {
     return () => clearInterval(interval);
   }, [fetchData]);
 
-    const handleTestNow = async (apiKey) => {
+    const handleTestNow = async (apiKey: string) => {
   try {
-    const token = localStorage.getItem('token');
-    const projectKey = localStorage.getItem('projectKey');
-    const role = localStorage.getItem('role');
+    const token = localStorage.getItem('token') || '';
+    const projectKey = localStorage.getItem('projectKey') || '';
+    const role = localStorage.getItem('role') || '';
 
     const response = await fetch(`http://127.0.0.1:5000/monitor/test/${apiKey}`, {
       method: 'GET',
@@ -102,12 +135,15 @@ const APIMonitorDashboard = () => {
     });
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const updatedApi = await response.json();
-    setData((prev) => ({
-      ...prev,
-      details: prev.details.map((api) =>
-        api.key === apiKey ? updatedApi : api
-      )
-    }));
+    setData((prev) => {
+          if (!prev) return prev;
+          return {
+            ...prev,
+                      details: prev.details.map((api) =>
+                api.key === apiKey ? { ...api, ...updatedApi } : api
+              ),
+            };
+          });
   } catch (err) {
     console.error('Error testing API:', err);
   }
@@ -149,4 +185,4 @@ const APIMonitorDashboard = () => {
   );
 };
 
-export default APIMonitorDashboard;
+export default UserDashboard;

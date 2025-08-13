@@ -1,8 +1,19 @@
-// src/components/SetKeysModal.jsx
+// src/components/SetKeysModal.tsx
 import React, { useState, useEffect } from "react";
 import '../styles/APIMonitorDashboard.css';
 
-const DEFAULT_VALUES = {
+interface ApiConstants {
+  COUNTRY_CODE: string;
+  TOURNAMENT_KEY: string;
+  MATCH_KEY: string;
+  PLAYER_KEY: string;
+  INNING_KEY: string;
+  OVER_KEY: string;
+  PAGE: number;
+  TEAM_KEY: string;
+}
+
+const DEFAULT_VALUES: ApiConstants = {
   COUNTRY_CODE: "IND",
   TOURNAMENT_KEY: "a-rz--cricket--icc--icccwclt--2023-27-8JlY",
   MATCH_KEY: "a-rz--cricket--Th1834366022682058833",
@@ -13,41 +24,42 @@ const DEFAULT_VALUES = {
   TEAM_KEY: "nep",
 };
 
-const SetKeysModal = ({ isOpen, onClose, onSave }) => {
+interface SetKeysModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSave?: (data: ApiConstants) => void;
+}
 
-  const [formData, setFormData] = useState(DEFAULT_VALUES);
-  const [errors, setErrors] = useState({});
+const SetKeysModal: React.FC<SetKeysModalProps> = ({ isOpen, onClose, onSave }) => {
+  const [formData, setFormData] = useState<ApiConstants>(DEFAULT_VALUES);
+  const [errors, setErrors] = useState<Partial<Record<keyof ApiConstants, boolean>>>({});
 
   useEffect(() => {
     const saved = localStorage.getItem("apiConstants");
     if (saved) {
       setFormData(JSON.parse(saved));
     }
-  }, [isOpen]); 
-
+  }, [isOpen]);
 
   const handleReset = () => {
-  setFormData(DEFAULT_VALUES);
-  setErrors({});
-  localStorage.setItem("apiConstants", JSON.stringify(DEFAULT_VALUES));
-  if (onSave) onSave(DEFAULT_VALUES);
-};
+    setFormData(DEFAULT_VALUES);
+    setErrors({});
+    localStorage.setItem("apiConstants", JSON.stringify(DEFAULT_VALUES));
+    if (onSave) onSave(DEFAULT_VALUES);
+  };
 
-
-  const handleChange = (key, value) => {
+  const handleChange = <K extends keyof ApiConstants>(key: K, value: ApiConstants[K]) => {
     setFormData((prev) => ({ ...prev, [key]: value }));
-    setErrors((prev) => ({ ...prev, [key]: false })); 
+    setErrors((prev) => ({ ...prev, [key]: false }));
   };
 
   const handleSave = () => {
-    let newErrors = {};
-    Object.keys(DEFAULT_VALUES).forEach((key) => {
-      if (!formData[key] && formData[key] !== 0) {
+    const newErrors: Partial<Record<keyof ApiConstants, boolean>> = {};
+    (Object.keys(DEFAULT_VALUES) as (keyof ApiConstants)[]).forEach((key) => {
+      if (formData[key] === "" || formData[key] === null || formData[key] === undefined) {
         newErrors[key] = true;
       }
     });
-
-    
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -71,15 +83,15 @@ const SetKeysModal = ({ isOpen, onClose, onSave }) => {
             handleSave();
           }}
         >
-          {Object.keys(DEFAULT_VALUES).map((key) => (
+          {(Object.keys(DEFAULT_VALUES) as (keyof ApiConstants)[]).map((key) => (
             <div className="form-group" key={key}>
               <label>
                 {key} <span style={{ color: "red" }}>*</span>
               </label>
               <input
                 type="text"
-                value={formData[key]}
-                onChange={(e) => handleChange(key, e.target.value)}
+                value={formData[key] as string | number}
+                onChange={(e) => handleChange(key, e.target.value as any)}
                 className={errors[key] ? "input-error" : ""}
               />
             </div>
@@ -102,7 +114,6 @@ const SetKeysModal = ({ isOpen, onClose, onSave }) => {
             >
               Cancel
             </button>
-            
           </div>
         </form>
       </div>

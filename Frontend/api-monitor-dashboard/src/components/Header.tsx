@@ -1,9 +1,25 @@
 import React, { useState } from 'react';
 import { RefreshCw, Plus, LogOut, KeySquareIcon, Settings2Icon } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import SetKeysModal from './SetKeysModal';
+import SetKeysModal from './SetKeysModal.js';
 
-const Header = ({ onRefresh }) => {
+
+export interface KeysData {
+  COUNTRY_CODE: string;
+  TOURNAMENT_KEY: string;
+  MATCH_KEY: string;
+  PLAYER_KEY: string;
+  INNING_KEY: string;
+  OVER_KEY: string;
+  PAGE: number;
+  TEAM_KEY: string;
+}
+
+interface HeaderProps {
+  onRefresh: () => void;
+}
+
+const Header: React.FC<HeaderProps> = ({ onRefresh }) => { 
   const navigate = useNavigate();
   const role = localStorage.getItem('role');
     const name = localStorage.getItem('name');
@@ -51,11 +67,11 @@ const Header = ({ onRefresh }) => {
         </button>
       </div>
 
-      {showSetKeys && (
+      {showSetKeys && ( 
         <SetKeysModal
           isOpen={true}
           onClose={() => setShowSetKeys(false)}
-          onSave={(data) => console.log("Updated constants:", data)}
+          onSave={(data : KeysData) => console.log("Updated constants:", data)}
         />
       )}
     </div>

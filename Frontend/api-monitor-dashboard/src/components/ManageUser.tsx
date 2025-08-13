@@ -1,6 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { Plus, Edit, Trash2, X } from "lucide-react";
 
+// Interface for User data
+interface UserData {
+  project_key: string;
+  username: string;
+  api_key: string;
+  role: string;
+}
+
+// Interface for FormData
+interface UserFormData {
+  project_key: string;
+  username: string;
+  api_key: string;
+  role: string;
+}
+
+type FormErrors = Partial<Record<keyof UserFormData, boolean>>;
+
 const ManageUser = () => {
   const [users, setUsers] = useState([]);
   const [message, setMessage] = useState("");
@@ -12,13 +30,13 @@ const ManageUser = () => {
     api_key: "",
     role: ""
   });
-  const [errors, setErrors] = useState({});
-  const [editKey, setEditKey] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [editKey, setEditKey] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
   const usersPerPage = 10;
 
-  const token = localStorage.getItem("token");
-  const role = localStorage.getItem("role");
+  const token = localStorage.getItem("token") || "";
+  const role = localStorage.getItem("role") || "";
 
   useEffect(() => {
     refreshUsers();
@@ -46,8 +64,8 @@ const ManageUser = () => {
   };
 
   const handleSubmit = () => {
-    let newErrors = {};
-    const requiredFields = ["project_key", "username", "api_key", "role"];
+    let newErrors: FormErrors = {};
+    const requiredFields: (keyof UserFormData)[] = ["project_key", "username", "api_key", "role"];
     requiredFields.forEach((field) => {
       if (!formData[field]) {
         newErrors[field] = true;
@@ -100,7 +118,7 @@ const ManageUser = () => {
       });
   };
 
-  const handleDelete = (projectKey) => {
+  const handleDelete = (projectKey: string) => {
     if (!window.confirm("Are you sure you want to delete this user?")) return;
 
     fetch(`http://127.0.0.1:5000/admin/users/${projectKey}`, {
@@ -119,7 +137,7 @@ const ManageUser = () => {
       });
   };
 
-  const handleEdit = (user) => {
+  const handleEdit = (user: UserFormData) => {
     setFormData({
       project_key: user.project_key,
       username: user.username,
@@ -188,7 +206,7 @@ const ManageUser = () => {
           </tr>
         </thead>
         <tbody>
-          {currentUsers.map((user, index) => (
+          {currentUsers.map((user: UserFormData, index) => (
             <tr key={user.project_key}>
               <td>{indexFirst + index + 1}</td>
               <td>{user.project_key}</td>

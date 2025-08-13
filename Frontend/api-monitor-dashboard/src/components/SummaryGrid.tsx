@@ -1,8 +1,21 @@
+
 import React from 'react';
 import { Database, AlertTriangle, Clock } from 'lucide-react';
-import SummaryCard from './SummaryCard';
+import SummaryCard from './SummaryCard.js';
 
-const SummaryGrid = ({ summary }) => (
+
+interface Summary {
+  total_apis: number;
+  healthy_apis: number;
+  failed_apis: number;
+  avg_response_time_ms: number;
+}
+
+interface SummaryGridProps {
+  summary: Summary;
+}
+
+const SummaryGrid: React.FC<SummaryGridProps> = ({ summary }) => (
   <div className="summary-grid">
     <SummaryCard icon={<Database size={24} />} title="Total APIs" value={summary.total_apis} colorClass="blue" />
     <SummaryCard icon={<span style={{ fontSize: '20px' }}>✓</span>} title="Healthy" value={summary.healthy_apis} colorClass="green" />
