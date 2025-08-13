@@ -6,6 +6,8 @@ import SetKeysModal from './SetKeysModal';
 const Header = ({ onRefresh }) => {
   const navigate = useNavigate();
   const role = localStorage.getItem('role');
+    const name = localStorage.getItem('name');
+
   const [showSetKeys, setShowSetKeys] = useState(false);
 
   const handleLogout = () => {
@@ -44,7 +46,7 @@ const Header = ({ onRefresh }) => {
 
         <button className="add-api-button" onClick={handleLogout}>
           <LogOut size={16} />
-          <h3 style={{ color: 'white' }}>{role?.toUpperCase()}</h3>
+          <h3 style={{ color: 'white' }}>{name?.toUpperCase()}</h3>
           <span>LOGOUT</span>
         </button>
       </div>

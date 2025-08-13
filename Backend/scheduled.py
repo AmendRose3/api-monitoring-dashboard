@@ -48,7 +48,7 @@ def fetch_roanuz_token():
             return None
         data = response.json().get("data", {})
         token = data.get("token")
-        expires = data.get("expires")  # Unix timestamp
+        expires = data.get("expires")
 
         if not token or not expires:
             logging.error("Invalid token or expiry from Roanuz API")

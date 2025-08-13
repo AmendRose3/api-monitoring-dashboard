@@ -2,7 +2,7 @@ from flask import Flask, jsonify
 from flask_cors import CORS
 from cassandra_db import get_cassandra_session
 from monitor import monitor_apis,test_single_api
-from api_endpoints_crud import get_all_endpoints, add_endpoint, update_endpoint, delete_endpoint
+from api_endpoints_crud import get_all_endpoints, add_endpoint, update_endpoint, delete_endpoint, get_all_users, add_user, update_user, delete_user
 import requests
 from flask import request
 
@@ -48,14 +48,15 @@ def login():
         return jsonify({'error': f'Auth API error: {str(e)}'}), 500
 
     try:
-        query = "SELECT role FROM user WHERE project_key=%s"
+        query = "SELECT role,username FROM user WHERE project_key=%s"
         result = session.execute(query, [project_key]).one()
+        name=result.get('username')
         if result is None or result.get('role') != role:
             return jsonify({'error': 'User not found or role mismatch'}), 403
     except Exception as e:
         return jsonify({'error': f'Database error: {str(e)}'}), 500
 
-    return jsonify({'token': token}), 200
+    return jsonify({'token': token,'name':name}), 200
 
 
 # TEST SINGLE API
@@ -133,6 +134,43 @@ def remove_endpoint(api_key):
     if role != 'admin':
         return jsonify({'error': 'Unauthorized'}), 403
     return jsonify(delete_endpoint(session, api_key)), 200
+
+# CRUD OPERATIONS FOR USER ENDPOINTS
+
+@app.route('/admin/users', methods=['GET'])
+def list_users():
+    role = request.headers.get('role')
+    if role != 'admin':
+        return jsonify({'error': 'Unauthorized'}), 403
+    return jsonify(get_all_users(session)), 200
+
+
+@app.route('/admin/users', methods=['POST'])
+def create_user():
+    role = request.headers.get('role')
+    if role != 'admin':
+        return jsonify({'error': 'Unauthorized'}), 403
+    data = request.json
+    return jsonify(add_user(session, **data)), 201
+
+
+@app.route('/admin/users/<user_key>', methods=['PUT'])
+def edit_user(user_key):
+    role = request.headers.get('role')
+    if role != 'admin':
+        return jsonify({'error': 'Unauthorized'}), 403
+    data = request.json
+    data.pop("user_key", None)  # prevent updating the unique key itself
+    return jsonify(update_user(session, user_key, **data)), 200
+
+
+@app.route('/admin/users/<user_key>', methods=['DELETE'])
+def remove_user(user_key):
+    role = request.headers.get('role')
+    if role != 'admin':
+        return jsonify({'error': 'Unauthorized'}), 403
+    return jsonify(delete_user(session, user_key)), 200
+
 
 
 #Helper function to extract API constants from request headers

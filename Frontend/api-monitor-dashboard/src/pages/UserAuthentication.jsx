@@ -29,6 +29,8 @@ const UserAuthentication = () => {
       localStorage.setItem('token', response.data.token);
       localStorage.setItem('projectKey', projectKey);
       localStorage.setItem('role', 'user');
+      localStorage.setItem('name', response.data.name); 
+
       navigate('/dashboard');
     } catch (error) {
       setMessage('Invalid credentials');

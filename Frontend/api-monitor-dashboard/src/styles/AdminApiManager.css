@@ -205,4 +205,27 @@
   color: #333;
 }
 
+.view-switch-buttons {
+  background-color: #000000;
+  color: white;
+  border: none;
+  padding: 8px 18px;
+  margin: 0 8px;
+  border-radius: 4px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  user-select: none;
+}
+
+.view-switch-buttons:hover:not(:disabled) {
+  background-color: #04070a;
+}
+
+.view-switch-buttons:disabled {
+  background-color: #6c757d;
+  cursor: default;
+  opacity: 0.65;
+}
+
 
